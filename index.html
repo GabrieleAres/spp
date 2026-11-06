@@ -47,7 +47,7 @@ button:disabled{opacity:.6;cursor:default}
 </div>
 <div class="bar"><div class="track"><div class="fill" id="fill"></div></div><div class="cnt" id="cnt"></div></div>
 <div id="list"></div>
-<div class="card noprint"><button id="go">Invia e stampa</button><p class="sub" id="msg" style="margin:8px 0 0"></p></div>
+<div class="card noprint"><button id="go">Invia risposte</button><p class="sub" id="msg" style="margin:8px 0 0"></p></div>
 <div id="res"><h2>Esercitazione SPP – Ruoli del SPP</h2><pre id="out"></pre></div>
 </main>
 <script>
@@ -108,11 +108,11 @@ document.getElementById("go").onclick=function(){
  });
  document.getElementById("out").textContent=t;
  btn.disabled=true;m.textContent="Invio in corso…";
- function stampa(){btn.disabled=false;setTimeout(function(){window.print();},200);}
+ function fine(){btn.disabled=false;}
  fetch(ENDPOINT,{method:"POST",body:JSON.stringify(row)})
   .then(function(r){return r.json();})
-  .then(function(d){if(d&&d.ok){try{localStorage.removeItem(KEY);}catch(e){}}m.textContent=d&&d.ok?"Risposte inviate.":"Invio non confermato: consegna la stampa al docente.";stampa();})
-  .catch(function(){m.textContent="Invio non confermato: consegna la stampa al docente.";stampa();});
+  .then(function(d){if(d&&d.ok){try{localStorage.removeItem(KEY);}catch(e){}}m.textContent=d&&d.ok?"Risposte inviate correttamente.":"Invio non confermato. Verifica la connessione e riprova.";fine();})
+  .catch(function(){m.textContent="Invio non confermato. Verifica la connessione e riprova.";fine();});
 };
 </script>
 </body>
