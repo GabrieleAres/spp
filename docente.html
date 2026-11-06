@@ -1,220 +1,23 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>SPP – Risposte in tempo reale</title>
-<meta name="robots" content="noindex">
-<style>
-:root{--bg:#f5f7fa;--card:#fff;--tx:#1b2430;--mu:#5b6675;--ac:#0b5cab;--ac2:#e6f0fb;--bd:#d5dbe3;--ok:#1a9b5c;--no:#d64545;--vu:#e3e7ec}
-@media (prefers-color-scheme:dark){:root{--bg:#12171d;--card:#1b222b;--tx:#e8edf3;--mu:#9aa6b5;--ac:#5aa9f0;--ac2:#1e3248;--bd:#303a46;--ok:#2fb877;--no:#ec6a6a;--vu:#2b343f}}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-header{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--bd);padding:10px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-h1{font-size:1.15rem;margin:0;flex:1 1 auto}
-.live{display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--mu)}
-.dot{width:9px;height:9px;border-radius:50%;background:var(--ok);animation:p 1.6s infinite}
-.dot.off{background:var(--no);animation:none}
-@keyframes p{50%{opacity:.3}}
-select,input[type=search],input[type=password]{font:inherit;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--tx)}
-main{max-width:1000px;margin:0 auto;padding:16px}
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
-.kpi{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px}
-.kpi .v{font-size:1.8rem;font-weight:700;line-height:1.1}
-.kpi .l{font-size:.82rem;color:var(--mu)}
-.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
-.tabs{display:flex;gap:6px}
-.tabs button,.tb button{font:inherit;padding:8px 16px;border-radius:999px;border:1px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer}
-.tabs button.on{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:600}
-#q{flex:1 1 220px;min-width:180px}
-.tb{display:flex;gap:6px;margin-bottom:10px}
-.tb button{padding:5px 12px;font-size:.85rem}
-details{background:var(--card);border:1px solid var(--bd);border-radius:12px;margin-bottom:10px}
-summary{cursor:pointer;padding:12px 14px;display:flex;gap:10px;align-items:center;list-style:none}
-summary::-webkit-details-marker{display:none}
-summary::before{content:"▸";color:var(--mu);transition:transform .15s}
-details[open]>summary::before{transform:rotate(90deg)}
-.at{font-weight:700;color:var(--ac);flex:1}
-.badge{font-size:.78rem;background:var(--ac2);color:var(--ac);border-radius:999px;padding:2px 10px;white-space:nowrap;font-weight:600}
-.body{padding:0 14px 12px}
-.qb{margin-top:12px}
-.ql{font-weight:600;font-size:.88rem;margin-bottom:4px;display:flex;gap:8px;align-items:center}
-.ct{font-weight:400;color:var(--mu);font-size:.78rem}
-.ans{border-left:3px solid var(--ac);background:var(--bg);border-radius:0 8px 8px 0;padding:6px 10px;margin:5px 0}
-.who{display:block;font-size:.76rem;font-weight:700;color:var(--mu)}
-.txt{white-space:pre-wrap;word-break:break-word}
-.none{color:var(--mu);font-size:.85rem;font-style:italic}
-.nm{font-weight:700;flex:1}
-.mt{font-size:.78rem;color:var(--mu);white-space:nowrap}
-.prog{width:70px;height:6px;border-radius:3px;background:var(--vu);overflow:hidden}
-.prog i{display:block;height:100%;background:var(--ok)}
-.ar{margin-top:14px;padding-top:10px;border-top:1px solid var(--bd)}
-.ar:first-child{border-top:0;margin-top:4px}
-.ar h4{margin:0 0 2px;font-size:.9rem;color:var(--ac)}
-mark{background:#ffe27a;color:#222;border-radius:3px;padding:0 2px}
-.vuoto{color:var(--mu);text-align:center;padding:40px 10px}
-#login{max-width:340px;margin:12vh auto;text-align:center}
-#login input{width:100%;margin:10px 0}
-#login button{font:inherit;padding:9px 18px;border:0;border-radius:8px;background:var(--ac);color:#fff;cursor:pointer}
-#err{color:var(--no);font-size:.85rem;min-height:1.2em}
-.hide{display:none!important}
-</style>
-</head>
-<body>
-<div id="login">
-  <h2>Area docente</h2>
-  <input type="password" id="cod" placeholder="Codice docente" autocomplete="current-password">
-  <div id="err"></div>
-  <button id="enter">Entra</button>
-</div>
-
-<div id="app" class="hide">
-<header>
-  <h1>Ruoli del SPP – Risposte</h1>
-  <select id="fd" title="Filtra per data"><option value="">Tutte le date</option></select>
-  <div class="live"><span class="dot" id="dot"></span><span id="agg">in attesa…</span></div>
-</header>
-<main>
-  <div class="kpis" id="kpis"></div>
-  <div class="row">
-    <div class="tabs" id="tabs">
-      <button data-t="aree" class="on">Per area</button>
-      <button data-t="disc">Discenti</button>
-    </div>
-    <input type="search" id="q" placeholder="Cerca nelle risposte o nei nomi…">
-  </div>
-  <div id="v"></div>
-</main>
-</div>
-
-<script>
-var ENDPOINT="https://script.google.com/macros/s/AKfycbzv9_7CIgS4LseWfHRmFlkNTruNggjItxSb8zq0WQDQGDtnyZZJpJyMlP2ff4M5oFTF/exec";
-/* stessa interfaccia di google.script.run, ma via fetch (GitHub Pages) */
-var google={script:{run:{withSuccessHandler:function(ok){return{withFailureHandler:function(ko){return{getDati:function(c){
-  fetch(ENDPOINT+"?azione=dati&codice="+encodeURIComponent(c)).then(function(r){return r.json()}).then(ok).catch(ko);
-}}}}}}}};
-</script>
-<script>
+<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Dashboard docente · Ruoli SPP</title><style>
+:root{font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:#172b44;background:#f3f6fb}*{box-sizing:border-box}body{margin:0}button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #8ab8fa}header{background:#102b4d;color:white;padding:22px max(24px,calc((100vw - 1280px)/2));display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap}.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#a7c7e9}h1{font-size:25px;margin:5px 0}header p{margin:0;color:#c5d6ea;font-size:13px}.status{font-size:13px;background:#22466c;padding:9px 13px;border-radius:25px}.dot{display:inline-block;width:9px;height:9px;background:#5de3a3;border-radius:50%;margin-right:7px}.dot.off{background:#ff9a9a}main{max-width:1320px;margin:auto;padding:26px 24px}.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.kpi,.panel,.filterbox{background:white;border:1px solid #e0e8f2;border-radius:16px;box-shadow:0 3px 15px #17385b08}.kpi{padding:20px}.kpi strong{display:block;font-size:30px;color:#153d6b}.kpi span{color:#63748b;font-size:13px}.filterbox{padding:17px;margin:18px 0}.filters{display:flex;gap:12px;flex-wrap:wrap;align-items:end}.field{display:flex;flex-direction:column;gap:5px;min-width:165px;flex:1}.field label{font-size:12px;font-weight:700;color:#526782}select,input{width:100%;border:1px solid #d3deec;border-radius:9px;padding:10px;background:white;color:#173453}.search{flex:2;min-width:230px}.nav{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 16px}.nav button,.btn{border:1px solid #cbd9ea;background:white;color:#284a70;padding:10px 15px;border-radius:10px;font-weight:650}.nav button.active{background:#145a9e;color:white;border-color:#145a9e}.panel{padding:20px;margin-bottom:16px}.panelhead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}h2{font-size:19px;margin:0}small,.muted{color:#65778f}.gridarea{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}.areacard{border:1px solid #dce5f0;border-radius:13px;padding:16px;background:#fff;text-align:left;color:inherit}.areacard:hover{border-color:#438ed1;background:#f8fbff}.areacard h3{font-size:15px;margin:6px 0 14px;min-height:43px}.code{font-size:12px;color:#1562a3;font-weight:750}.metrics{display:flex;justify-content:space-between;gap:6px}.metric{text-align:center;background:#f1f6fb;border-radius:8px;padding:8px;flex:1}.metric b{display:block;font-size:18px}.metric span{font-size:10px;color:#60748b}.progress{height:7px;background:#e7edf5;border-radius:20px;overflow:hidden;margin-top:13px}.progress i{display:block;height:100%;background:#299f81}.subnav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.subnav button{padding:8px 12px;border:1px solid #d6e2ef;border-radius:8px;background:white;color:#315579}.subnav button.active{background:#e7f2ff;border-color:#3184c7;color:#145a9e}.answers{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:12px}.answer{background:#f7faff;border:1px solid #e0e9f4;border-radius:12px;padding:14px;overflow-wrap:anywhere}.answer b{display:block;font-size:13px;color:#205587;margin-bottom:8px}.answer p{white-space:pre-wrap;margin:0;font-size:14px}.question{margin:18px 0 12px;font-weight:750}.people{display:grid;gap:10px}.person{border:1px solid #dce6f0;border-radius:12px;overflow:hidden}.person summary{cursor:pointer;padding:14px 16px;display:flex;justify-content:space-between;gap:12px;align-items:center;font-weight:700}.person[open] summary{background:#f3f8fe}.personbody{padding:15px}.area-section{margin:16px 0;border-top:1px solid #e2eaf2;padding-top:12px}.area-section h3{font-size:14px;color:#205587}.answerline{padding:9px 0;font-size:13px;border-bottom:1px dashed #e2eaf2}.answerline b{display:block;color:#526780;margin-bottom:4px}.answerline p{margin:0;white-space:pre-wrap}.empty{padding:35px;text-align:center;color:#6a7b91}.pill{border-radius:20px;padding:4px 10px;background:#e8f2ff;color:#175a95;font-size:12px}.toolbar{display:flex;gap:8px;flex-wrap:wrap}.btn.primary{background:#145a9e;color:white;border-color:#145a9e}#login{max-width:390px;margin:12vh auto;background:white;padding:32px;border-radius:20px;box-shadow:0 12px 40px #142b4920}#login h2{margin-bottom:8px}#login input{margin:18px 0 10px}#login button{width:100%}.error{color:#ba2d37;font-size:13px}.hide{display:none!important}@media(max-width:800px){.kpis{grid-template-columns:repeat(2,1fr)}main{padding:16px}.panel{padding:15px}header{padding:20px}.kpi{padding:15px}.kpi strong{font-size:25px}}@media(max-width:420px){.kpis{grid-template-columns:1fr 1fr}.metric{padding:6px}}
+</style></head><body><section id="login"><div class="eyebrow">ACCESSO RISERVATO</div><h2>Area docente</h2><p class="muted">Accedi per consultare le risposte dei partecipanti.</p><input type="password" id="cod" placeholder="Codice docente" autocomplete="current-password"><button class="btn primary" id="enter">Accedi ai risultati</button><p id="err" class="error"></p></section><div id="app" class="hide"><header><div><div class="eyebrow">DASHBOARD DOCENTE</div><h1>Ruoli del Servizio di Prevenzione e Protezione</h1><p>Analisi delle risposte dei partecipanti</p></div><div class="status"><span id="dot" class="dot"></span><span id="agg">Connessione in corso…</span></div></header><main><section id="kpis" class="kpis"></section><div class="filterbox"><div class="filters"><div class="field"><label for="fd">Data della sessione</label><select id="fd"><option value="">Tutte le date</option></select></div><div class="field"><label for="fp">Partecipante</label><select id="fp"><option value="">Tutti i partecipanti</option></select></div><div class="field search"><label for="q">Cerca nelle risposte</label><input id="q" type="search" placeholder="Nome, parola chiave, testo…"></div><button class="btn" id="reset">Azzera filtri</button></div></div><nav class="nav" id="tabs"><button data-tab="overview" class="active">Panoramica aree</button><button data-tab="compare">Confronta risposte</button><button data-tab="people">Per partecipante</button></nav><section class="panel"><div class="panelhead"><div><h2 id="viewtitle">Panoramica delle 14 aree</h2><small id="subtitle">Seleziona un'area per esaminare le risposte</small></div><div class="toolbar"><button class="btn" id="export">Esporta CSV</button></div></div><div id="view"></div></section></main></div><script>
+const ENDPOINT='https://script.google.com/macros/s/AKfycbzv9_7CIgS4LseWfHRmFlkNTruNggjItxSb8zq0WQDQGDtnyZZJpJyMlP2ff4M5oFTF/exec';
 var AREE=["1.1","1.2","2.1","2.2","3.1 (1/3)","3.1 (2/3)","3.1 (3/3)","4.1 (1/2)","4.1 (2/2)","4.2 Informazione","4.2 Formazione","4.2 Addestramento","5.1","6.1"];
 var TIT=["Analisi del contesto organizzativo","Requisiti legislativi e documentazione","Identificazione pericoli e valutazione rischi","Misure di prevenzione e protezione","Verifica misure: luoghi, attrezzature, DPI","Verifica misure: impianti, segnaletica, procedure","Verifica misure: stress lavoro-correlato e differenze","Procedure interne, autorità e fornitori (1/2)","Procedure interne, autorità e fornitori (2/2)","Informazione","Formazione","Addestramento e consultazione","Riesame, monitoraggio, infortuni e incidenti","Azioni correttive e miglioramento continuo"];
 var DOM=["Mi riconosco nei compiti che seguo in azienda?","Sono interessato a poter esercitare questo ruolo?","Penso di avere conoscenze e strumenti per esercitare il ruolo?"];
-var code="",tab="aree",raw=null,lastN=-1,openSet={},rows=[];
 
-function $(i){return document.getElementById(i)}
-function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
-function hl(t,q){
-  if(!q)return esc(t);
-  var lo=t.toLowerCase(),ql=q.toLowerCase(),out="",p=0,k;
-  while((k=lo.indexOf(ql,p))>=0){out+=esc(t.slice(p,k))+"<mark>"+esc(t.slice(k,k+q.length))+"</mark>";p=k+q.length}
-  return out+esc(t.slice(p));
-}
-function has(t,q){return t.toLowerCase().indexOf(q.toLowerCase())>=0}
-function fmtD(d){return d?d.split("-").reverse().join("/"):""}
-
-/* login */
-try{code=sessionStorage.getItem("cod")||""}catch(e){}
-$("enter").onclick=function(){code=$("cod").value;poll(true)};
-$("cod").onkeydown=function(e){if(e.key==="Enter")$("enter").click()};
-if(code)poll(true);
-
-function poll(first){
-  google.script.run.withSuccessHandler(function(d){
-    if(d&&d.errore){
-      try{sessionStorage.removeItem("cod")}catch(e){}
-      $("login").classList.remove("hide");$("app").classList.add("hide");
-      $("err").textContent=first&&$("cod").value?"Codice non valido.":"";
-      return;
-    }
-    try{sessionStorage.setItem("cod",code)}catch(e){}
-    $("login").classList.add("hide");$("app").classList.remove("hide");
-    $("dot").classList.remove("off");
-    $("agg").textContent="aggiornato alle "+new Date().toLocaleTimeString("it-IT");
-    if(d.n!==lastN||first){lastN=d.n;raw=d.righe;dedup();fillDates();render();}
-  }).withFailureHandler(function(){
-    $("dot").classList.add("off");$("agg").textContent="connessione assente";
-  }).getDati(code);
-}
-setInterval(function(){if(code&&!document.hidden)poll(false)},5000);
-
-/* tiene l'ultimo invio per nome+data */
-function dedup(){
-  var m={};
-  raw.forEach(function(r){m[r.nome.toLowerCase()+"|"+r.data]=r});
-  rows=Object.keys(m).map(function(k){return m[k]});
-  rows.sort(function(a,b){return a.ts<b.ts?1:-1});
-}
-function fillDates(){
-  var sel=$("fd"),c=sel.value,ds={};
-  rows.forEach(function(r){if(r.data)ds[r.data]=1});
-  var ks=Object.keys(ds).sort().reverse();
-  sel.innerHTML='<option value="">Tutte le date</option>'+ks.map(function(d){return'<option value="'+esc(d)+'">'+esc(fmtD(d))+'</option>'}).join("");
-  sel.value=ks.indexOf(c)>=0?c:"";
-}
-$("fd").onchange=render;
-$("q").oninput=render;
-$("tabs").onclick=function(e){
-  var t=e.target.getAttribute("data-t");if(!t)return;
-  tab=t;[].forEach.call($("tabs").children,function(b){b.classList.toggle("on",b===e.target)});render();
-};
-$("v").addEventListener("toggle",function(e){var d=e.target;if(d.dataset&&d.dataset.k)openSet[d.dataset.k]=d.open},true);
-$("v").addEventListener("click",function(e){
-  var id=e.target.id;if(id!=="ao"&&id!=="ac")return;
-  [].forEach.call($("v").querySelectorAll("details[data-k]"),function(d){d.open=id==="ao"});
-});
-
-function cur(){var d=$("fd").value;return d?rows.filter(function(r){return r.data===d}):rows}
-function filled(r){return r.r.filter(function(x){return x.trim()}).length}
-
-function render(){
-  var rs=cur(),q=$("q").value.trim(),NT=AREE.length*3;
-  var tot=0,last="";
-  rs.forEach(function(r){tot+=filled(r);if(r.ts>last)last=r.ts});
-  $("kpis").innerHTML=
-    '<div class="kpi"><div class="v">'+rs.length+'</div><div class="l">Discenti che hanno risposto</div></div>'+
-    '<div class="kpi"><div class="v">'+tot+'</div><div class="l">Risposte scritte</div></div>'+
-    '<div class="kpi"><div class="v">'+(rs.length?Math.round(tot/(rs.length*NT)*100):0)+'%</div><div class="l">Completamento medio</div></div>'+
-    '<div class="kpi"><div class="v">'+(last?esc(last.slice(11,16)):"–")+'</div><div class="l">Ultimo invio'+(last?' ('+esc(fmtD(last.slice(0,10)))+')':'')+'</div></div>';
-  if(!rs.length){$("v").innerHTML='<div class="vuoto">Ancora nessuna risposta. La pagina si aggiorna da sola ogni 5 secondi.</div>';return}
-  if(tab==="aree")vAree(rs,q);else vDisc(rs,q);
-}
-
-function vAree(rs,q){
-  var h='<div class="tb"><button id="ao">Apri tutte</button><button id="ac">Chiudi tutte</button></div>',any=false;
-  var sorted=rs.slice().sort(function(a,b){return a.nome.localeCompare(b.nome)});
-  AREE.forEach(function(a,i){
-    var n=0,body="";
-    for(var j=0;j<3;j++){
-      var items=sorted.filter(function(r){var t=r.r[i*3+j];return t&&t.trim()&&(!q||has(t,q))});
-      n+=items.length;
-      body+='<div class="qb"><div class="ql">'+esc(DOM[j])+' <span class="ct">'+items.length+' risposte</span></div>'+
-        (items.length?items.map(function(r){return'<div class="ans"><span class="who">'+esc(r.nome)+'</span><span class="txt">'+hl(r.r[i*3+j],q)+'</span></div>'}).join(""):'<div class="none">Nessuna risposta</div>')+'</div>';
-    }
-    if(q&&!n)return;
-    any=true;
-    var k="a"+i;
-    h+='<details data-k="'+k+'"'+(openSet[k]||(q&&n)?" open":"")+'><summary><span class="at">'+esc(a)+' · '+esc(TIT[i])+'</span><span class="badge">'+n+'</span></summary><div class="body">'+body+'</div></details>';
-  });
-  $("v").innerHTML=any?h:'<div class="vuoto">Nessun risultato per «'+esc(q)+'».</div>';
-}
-
-function vDisc(rs,q){
-  var h="",any=false;
-  rs.forEach(function(r){
-    var match=!q||has(r.nome,q)||r.r.some(function(t){return t&&has(t,q)});
-    if(!match)return;
-    any=true;
-    var f=filled(r),k="s"+r.nome+"|"+r.data;
-    var det="";
-    AREE.forEach(function(a,i){
-      var part="";
-      for(var j=0;j<3;j++){var t=r.r[i*3+j];
-        part+='<div class="qb"><div class="ql">'+esc(DOM[j])+'</div>'+(t&&t.trim()?'<div class="ans"><span class="txt">'+hl(t,q)+'</span></div>':'<div class="none">Nessuna risposta</div>')+'</div>';}
-      det+='<div class="ar"><h4>'+esc(a)+' · '+esc(TIT[i])+'</h4>'+part+'</div>';
-    });
-    h+='<details data-k="'+esc(k)+'"'+(openSet[k]?" open":"")+'><summary><span class="nm">'+hl(r.nome,q)+'</span><span class="mt">'+esc(fmtD(r.data))+' · '+esc(r.ts.slice(11,16))+'</span><span class="prog" title="'+f+' su '+AREE.length*3+'"><i style="width:'+Math.round(f/(AREE.length*3)*100)+'%"></i></span><span class="badge">'+f+'/'+AREE.length*3+'</span></summary><div class="body">'+det+'</div></details>';
-  });
-  $("v").innerHTML=any?h:'<div class="vuoto">Nessun risultato per «'+esc(q)+'».</div>';
-}
-</script>
-</body>
-</html>
+let code='',raw=[],rows=[],lastSignature='',tab='overview',selectedArea=0,selectedQuestion=0,requestBusy=false;
+const $=id=>document.getElementById(id);const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const has=(s,q)=>String(s??'').toLocaleLowerCase('it').includes(q.toLocaleLowerCase('it'));const filled=r=>(r.r||[]).filter(x=>String(x??'').trim()).length;const fmtD=d=>d?d.split('-').reverse().join('/'):'—';const val=(r,i,j)=>String((r.r||[])[i*3+j]??'').trim();
+try{code=sessionStorage.getItem('cod')||''}catch(e){}$('enter').onclick=()=>{code=$('cod').value.trim();if(code)poll(true)};$('cod').onkeydown=e=>{if(e.key==='Enter')$('enter').click()};if(code)poll(true);
+async function poll(first=false){if(requestBusy)return;requestBusy=true;try{const res=await fetch(ENDPOINT+'?azione=dati&codice='+encodeURIComponent(code),{cache:'no-store'});if(!res.ok)throw Error('HTTP '+res.status);const d=await res.json();if(d?.errore){try{sessionStorage.removeItem('cod')}catch(e){}$('login').classList.remove('hide');$('app').classList.add('hide');$('err').textContent='Codice docente non valido.';code='';return}if(!Array.isArray(d.righe))throw Error('Formato dati inatteso');try{sessionStorage.setItem('cod',code)}catch(e){}$('login').classList.add('hide');$('app').classList.remove('hide');$('dot').classList.remove('off');$('agg').textContent='Aggiornato alle '+new Date().toLocaleTimeString('it-IT');const signature=JSON.stringify(d.righe);if(first||signature!==lastSignature){lastSignature=signature;raw=d.righe;dedup();fillFilters();render()}}catch(e){$('dot').classList.add('off');$('agg').textContent='Connessione non disponibile';if(first)$('err').textContent='Impossibile caricare i dati. Riprova.';console.error(e)}finally{requestBusy=false}}
+setInterval(()=>{if(code&&!document.hidden)poll()},5000);
+function dedup(){const m=new Map();for(const r of raw){const key=String(r.nome??'').trim().toLocaleLowerCase('it')+'|'+r.data;const old=m.get(key);if(!old||String(r.ts??'')>=String(old.ts??''))m.set(key,r)}rows=[...m.values()].sort((a,b)=>String(b.ts??'').localeCompare(String(a.ts??'')))}
+function fillFilters(){const d=$('fd').value,p=$('fp').value;const dates=[...new Set(rows.map(r=>r.data).filter(Boolean))].sort().reverse();$('fd').innerHTML='<option value="">Tutte le date</option>'+dates.map(x=>`<option value="${esc(x)}">${esc(fmtD(x))}</option>`).join('');$('fd').value=dates.includes(d)?d:'';const names=[...new Set(rows.map(r=>r.nome).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'it'));$('fp').innerHTML='<option value="">Tutti i partecipanti</option>'+names.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');$('fp').value=names.includes(p)?p:''}
+function baseRows(){return rows.filter(r=>(!$('fd').value||r.data===$('fd').value)&&(!$('fp').value||r.nome===$('fp').value))}function visibleRows(){const q=$('q').value.trim();return baseRows().filter(r=>!q||has(r.nome,q)||(r.r||[]).some(t=>has(t,q)))}
+function render(){const rs=visibleRows(),total=rs.reduce((s,r)=>s+filled(r),0),last=rs.reduce((m,r)=>String(r.ts??'')>m?String(r.ts):m,'');$('kpis').innerHTML=`<div class="kpi"><strong>${rs.length}</strong><span>Partecipazioni visualizzate</span></div><div class="kpi"><strong>${total}</strong><span>Risposte compilate</span></div><div class="kpi"><strong>${rs.length?Math.round(total/(rs.length*42)*100):0}%</strong><span>Completamento delle 42 domande</span></div><div class="kpi"><strong>${last?esc(last.slice(11,16)):'—'}</strong><span>Ultimo invio ${last?esc(fmtD(last.slice(0,10))):''}</span></div>`;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));if(tab==='overview')overview(rs);else if(tab==='compare')compare(rs);else people(rs)}
+function overview(rs){$('viewtitle').textContent='Panoramica delle 14 aree';$('subtitle').textContent='Ogni scheda mostra le risposte presenti alle tre domande (D1, D2, D3).';$('view').innerHTML=rs.length?'<div class="gridarea">'+AREE.map((a,i)=>{const n=DOM.map((_,j)=>rs.filter(r=>val(r,i,j)).length),tot=n.reduce((x,y)=>x+y,0),pct=Math.round(tot/(rs.length*3)*100);return `<button class="areacard" data-area="${i}"><span class="code">AREA ${esc(a)}</span><h3>${esc(TIT[i])}</h3><div class="metrics">${n.map((x,j)=>`<div class="metric"><b>${x}</b><span>D${j+1}</span></div>`).join('')}</div><div class="progress"><i style="width:${pct}%"></i></div><small>${pct}% delle risposte compilate</small></button>`}).join('')+'</div>':'<div class="empty">Nessun risultato per i filtri selezionati.</div>';document.querySelectorAll('[data-area]').forEach(b=>b.onclick=()=>{selectedArea=Number(b.dataset.area);tab='compare';render()})}
+function compare(rs){$('viewtitle').textContent='Confronto delle risposte';$('subtitle').textContent='Scegli un’area e una domanda per confrontare le risposte testuali.';const controls=`<div class="filters" style="margin-bottom:16px"><div class="field"><label>Area tematica</label><select id="areaSelect">${AREE.map((a,i)=>`<option value="${i}" ${i===selectedArea?'selected':''}>${esc(a)} · ${esc(TIT[i])}</option>`).join('')}</select></div></div><div class="subnav">${DOM.map((d,j)=>`<button data-question="${j}" class="${j===selectedQuestion?'active':''}">Domanda ${j+1}</button>`).join('')}</div><div class="question">${esc(DOM[selectedQuestion])}</div>`;const answers=rs.filter(r=>val(r,selectedArea,selectedQuestion));$('view').innerHTML=controls+`<p class="muted">${answers.length} risposte su ${rs.length} partecipazioni visualizzate</p>`+(answers.length?'<div class="answers">'+answers.map(r=>`<article class="answer"><b>${esc(r.nome)} <span class="muted">· ${esc(fmtD(r.data))}</span></b><p>${esc(val(r,selectedArea,selectedQuestion))}</p></article>`).join('')+'</div>':'<div class="empty">Nessuna risposta compilata per questa domanda.</div>');$('areaSelect').onchange=e=>{selectedArea=Number(e.target.value);render()};document.querySelectorAll('[data-question]').forEach(b=>b.onclick=()=>{selectedQuestion=Number(b.dataset.question);render()})}
+function people(rs){$('viewtitle').textContent='Risposte per partecipante';$('subtitle').textContent='Apri un nominativo per consultare tutte le sue risposte.';$('view').innerHTML=rs.length?'<div class="people">'+rs.map((r,k)=>`<details class="person"><summary><span>${esc(r.nome)}</span><span class="pill">${filled(r)}/42 · ${esc(fmtD(r.data))}</span></summary><div class="personbody">${AREE.map((a,i)=>`<section class="area-section"><h3>${esc(a)} · ${esc(TIT[i])}</h3>${DOM.map((d,j)=>`<div class="answerline"><b>${esc(d)}</b><p>${val(r,i,j)?esc(val(r,i,j)):'<span class="muted">Non compilata</span>'}</p></div>`).join('')}</section>`).join('')}</div></details>`).join('')+'</div>':'<div class="empty">Nessun partecipante corrisponde ai filtri.</div>'}
+$('fd').onchange=render;$('fp').onchange=render;$('q').oninput=render;$('reset').onclick=()=>{$('fd').value='';$('fp').value='';$('q').value='';render()};$('tabs').onclick=e=>{const b=e.target.closest('[data-tab]');if(b){tab=b.dataset.tab;render()}};
+$('export').onclick=()=>{const rs=visibleRows();if(!rs.length)return;const headers=['Nome','Data','Timestamp',...AREE.flatMap((a,i)=>DOM.map((d,j)=>`${a} - Domanda ${j+1}: ${d}`))];const csv=[headers,...rs.map(r=>[r.nome,r.data,r.ts,...Array.from({length:42},(_,i)=>r.r?.[i]??'')])].map(line=>line.map(v=>'"'+String(v??'').replace(/^[=+@\-\t\r]/,'\'$&').replace(/"/g,'""')+'"').join(';')).join('\r\n');const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='risultati_spp.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+</script></body></html>
